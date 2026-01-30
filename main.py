@@ -16,12 +16,14 @@ engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
+
 class EventDefinition(Base):
     __tablename__ = "event_definitions"
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, nullable=False)
     description = Column(String, nullable=True)
     logs = relationship("EventLog", back_populates="definition")
+
 
 class EventLog(Base):
     __tablename__ = "event_logs"
@@ -30,18 +32,22 @@ class EventLog(Base):
     timestamp = Column(DateTime(timezone=True), nullable=False)
     definition = relationship("EventDefinition", back_populates="logs")
 
+
 class EventDefinitionCreate(BaseModel):
     name: str
     description: Optional[str] = None
+
 
 class EventDefinitionOut(EventDefinitionCreate):
     id: int
     class Config:
         from_attributes = True
 
+
 class EventLogCreate(BaseModel):
     event_type_name: str
     timestamp: Optional[datetime] = None
+
 
 class EventLogOut(BaseModel):
     id: int
@@ -50,9 +56,11 @@ class EventLogOut(BaseModel):
     class Config:
         from_attributes = True
 
+
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Life Tracker")
+
 
 def get_db():
     db = SessionLocal()
@@ -60,6 +68,7 @@ def get_db():
         yield db
     finally:
         db.close()
+
 
 @app.post("/event-definitions/", response_model=EventDefinitionOut)
 def create_definition(definition: EventDefinitionCreate, db: Session = Depends(get_db)):
@@ -73,9 +82,11 @@ def create_definition(definition: EventDefinitionCreate, db: Session = Depends(g
     db.refresh(new_def)
     return new_def
 
+
 @app.get("/event-definitions/", response_model=List[EventDefinitionOut])
 def get_definitions(db: Session = Depends(get_db)):
     return db.query(EventDefinition).all()
+
 
 @app.post("/events/", response_model=EventLogOut)
 def log_event(event_data: EventLogCreate, db: Session = Depends(get_db)):
@@ -103,6 +114,7 @@ def log_event(event_data: EventLogCreate, db: Session = Depends(get_db)):
         "event_type": event_def.name,
         "timestamp": new_log.timestamp
     }
+
 
 @app.get("/events/", response_model=List[EventLogOut])
 def get_events(db: Session = Depends(get_db)):

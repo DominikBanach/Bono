@@ -5,15 +5,15 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-RUN groupadd -r appuser && useradd -r -g appuser appuser
+RUN groupadd -r bonouser && useradd -r -g bonouser bonouser
 
 COPY requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY --chown=appuser:appuser . .
+COPY --chown=bonouser:bonouser . .
 
-USER appuser
+USER bonouser
 
 EXPOSE 8000
 
